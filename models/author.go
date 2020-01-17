@@ -10,7 +10,7 @@ type Country struct {
 }
 
 func (c Country) String() string {
-	return fmt.Sprintf("Country<%d %s>", u.Id, u.Name)
+	return fmt.Sprintf("Country<%d %s>", c.Id, c.Name)
 }
 
 type Author struct {
@@ -19,6 +19,6 @@ type Author struct {
 	Country *Country
 }
 
-func (A Author) String() string {
-	return fmt.Sprintf("Author<%d %s %s>", u.Id, u.Name, u.Country.Name)
+func (a Author) String() string {
+	return fmt.Sprintf("Author<%d %s %s>", a.Id, a.Name, a.Country.Name)
 }

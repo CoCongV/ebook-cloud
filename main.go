@@ -2,22 +2,14 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/go-pg/pg/v9"
+	// "github.com/go-pg/pg/v9/orm"
 
-	"EookCloud/models"
+	"EbookCloud/app/apiv1"
 )
 
-var db *(pg.DB)
-
 func main() {
-	db = pg.Connect(&pg.Options{
-		models.User: "postgres",
-	})
+
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	apiv1.SetRouter(r)
 	r.Run()
 }
