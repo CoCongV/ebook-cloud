@@ -12,9 +12,10 @@ func GetAuthors(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
 		c.AbortWithError(401, err)
+		return
 	}
 	offsetCount := (page - 1) * 20
-	itemCount := page * 20
+	itemCount := 20
 
 	var authors []models.Author
 	models.DB.Offset(offsetCount).Limit(itemCount).Order("name").Find(&authors)
