@@ -8,7 +8,7 @@ import (
 
 //Country Model
 type Country struct {
-	gorm.Model
+	ID   uint   `gorm:"primary_key"`
 	Name string `gorm:"type:varchar(32);unique_index"`
 }
 
@@ -20,7 +20,7 @@ func (c Country) String() string {
 type Author struct {
 	gorm.Model
 	Name     string  `gorm:"type:varchar(32);unique_index;not null"`
-	Country  Country `gorm:"foreignkey:Name"`
+	Country  Country `gorm:"foreignkey:name"`
 	AuthorID uint
 }
 
