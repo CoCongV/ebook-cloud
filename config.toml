@@ -1,0 +1,2 @@
+dbURL = "host=127.0.0.1 port=5432 user=lvcong dbname=ebook password=password sslmode=disable"
+addr = "localhost:8080"
