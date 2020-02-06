@@ -8,7 +8,7 @@ import (
 
 //Country Model
 type Country struct {
-	ID   uint   `gorm:"primary_key"`
+	gorm.Model
 	Name string `gorm:"type:varchar(32);unique_index"`
 }
 
