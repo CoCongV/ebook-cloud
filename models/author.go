@@ -9,7 +9,8 @@ import (
 //Country Model
 type Country struct {
 	gorm.Model
-	Name string `gorm:"type:varchar(32);unique_index"`
+	Name   string `gorm:"type:varchar(32);unique_index"`
+	Author []Author
 }
 
 func (c Country) String() string {
@@ -19,11 +20,11 @@ func (c Country) String() string {
 // Author Model
 type Author struct {
 	gorm.Model
-	Name     string  `gorm:"type:varchar(32);unique_index;not null"`
-	Country  Country `gorm:"foreignkey:name"`
-	AuthorID uint
+	Name      string `gorm:"type:varchar(32);unique_index;not null"`
+	CountryID uint
+	BookID    uint
 }
 
 func (a Author) String() string {
-	return fmt.Sprintf("Author<%d %s %s>", a.ID, a.Name, a.Country.Name)
+	return fmt.Sprintf("Author<%d %s>", a.ID, a.Name)
 }

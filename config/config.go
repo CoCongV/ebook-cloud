@@ -9,12 +9,13 @@ import (
 
 //Config struct
 type Config struct {
-	Addr          string `toml:"addr"`
-	DBURL         string `toml:"dbURL"`
-	SecretKey     string `toml:"secret_key"`
-	ExpiresAt     int64  `toml:"expires_at"`
-	Mode          string `toml:"mode"`
-	UserServerURL string `toml:"user_server_url"`
+	Addr              string `toml:"addr"`
+	DBURL             string `toml:"dbURL"`
+	SecretKey         string `toml:"secret_key"`
+	ExpiresAt         int64  `toml:"expires_at"`
+	Mode              string `toml:"mode"`
+	UserServerURL     string `toml:"user_server_url"`
+	UserServerTimeout int    `toml:"user_server_timeout"`
 }
 
 //Conf is struct Config point

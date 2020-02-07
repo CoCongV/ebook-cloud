@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"path"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"golang.org/x/net/publicsuffix"
@@ -31,6 +32,11 @@ func Setup() {
 	httpClient := http.Client{
 		Jar: cookieJar,
 	}
+
+	if config.Conf.UserServerTimeout != 0 {
+		httpClient.Timeout = time.Duration(config.Conf.UserServerTimeout) * time.Second
+	}
+
 	UserClient = &userClient{
 		baseURL:   config.Conf.UserServerURL,
 		verifyURL: path.Join(config.Conf.UserServerURL, "/api/v1/verify_auth_token"),
