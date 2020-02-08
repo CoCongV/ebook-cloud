@@ -1,8 +1,13 @@
 package apiv1
 
 import (
+	"ebook-cloud/config"
 	"ebook-cloud/models"
+	"mime/multipart"
+	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,4 +27,62 @@ func GetBooks(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"books": books,
 	})
+}
+
+type BookForm struct {
+	Name       string `form:"name" binding:"required"`
+	AuthorID   int    `form:"author"`
+	File       *multipart.File
+	Fileheader *multipart.FileHeader
+}
+
+func PostBooks(c *gin.Context) {
+	var (
+		bookForm BookForm
+		author   models.Author
+	)
+	c.Bind(&bookForm)
+
+	filename := config.Conf.DestPath + bookForm.Fileheader.Filename
+	_, err := os.Create(filename)
+	if err != nil {
+		c.AbortWithError(500, err)
+		return
+	}
+
+	models.DB.Find(&author, bookForm.AuthorID)
+
+	book := models.Book{
+		Name:   bookForm.Name,
+		File:   filename,
+		Author: []*models.Author{&author},
+	}
+	models.DB.Create(&book)
+	c.JSON(200, gin.H{
+		"id": book.ID,
+	})
+}
+
+type BookURI struct {
+	ID int `uri:"id" binding:"required"`
+}
+
+func GetBook(c *gin.Context) {
+	var (
+		bookuri BookURI
+		book    models.Book
+	)
+	if err := c.ShouldBindUri(&bookuri); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	models.DB.First(&book, bookuri.ID)
+	if book.ID == 0 {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
+	ss := strings.Split(book.File, ".")
+	filename := book.Name + ss[len(ss)-1]
+	c.FileAttachment(book.File, filename)
 }

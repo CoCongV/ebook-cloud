@@ -2,6 +2,7 @@ package apiv1
 
 import (
 	"ebook-cloud/models"
+	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -23,4 +24,37 @@ func GetAuthors(c *gin.Context) {
 		"authors": authors,
 	}
 	c.JSON(200, h)
+}
+
+//AuthorsReq is ...
+type AuthorsReqParams struct {
+	Name      string `json:"name"`
+	CountryID uint   `json:"country_id"`
+}
+
+//PostAuthors is ...
+func PostAuthors(c *gin.Context) {
+	var (
+		authorReq AuthorsReqParams
+		country   models.Country
+	)
+	err := c.BindJSON(&authorReq)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	models.DB.Find(&country, authorReq.CountryID)
+	if country.ID == 0 {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "country not found",
+		})
+	}
+	author := models.Author{
+		Name:      authorReq.Name,
+		CountryID: authorReq.CountryID,
+	}
+	models.DB.Create(&author)
+	c.JSON(http.StatusCreated, gin.H{
+		"id": author.ID,
+	})
 }
