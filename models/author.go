@@ -22,7 +22,7 @@ type Author struct {
 	gorm.Model
 	Name      string `gorm:"type:varchar(32);unique_index;not null"`
 	CountryID uint
-	BookID    uint
+	Books     []*Book `gorm:"many2many:author_books;"`
 }
 
 func (a Author) String() string {
