@@ -28,7 +28,12 @@ func Setup() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if Conf.Mode == "release" {
+	switch Conf.Mode {
+	case "release":
 		gin.SetMode(gin.ReleaseMode)
+	case "debug":
+		gin.SetMode(gin.DebugMode)
+	default:
+		gin.SetMode(gin.DebugMode)
 	}
 }

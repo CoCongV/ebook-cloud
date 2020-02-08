@@ -93,7 +93,6 @@ func (suit *TestSuit) TestBooks() {
 	}
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), len(booksResp.Books), 0)
-
 }
 
 func TestUserTestSuit(t *testing.T) {
