@@ -16,6 +16,7 @@ type Config struct {
 	Mode              string `toml:"mode"`
 	UserServerURL     string `toml:"user_server_url"`
 	UserServerTimeout int    `toml:"user_server_timeout"`
+	DestPath          string `toml:"dest_path"`
 }
 
 //Conf is struct Config point

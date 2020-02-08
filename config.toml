@@ -4,3 +4,4 @@ secret_key = "f3efef74-c99f-4224-9491-2f347d5318b5"
 mode = "debug"
 user_server_url = "http://localhost:8001/"
 user_server_timeout = 5
+dest_path = "~/books"
