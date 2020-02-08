@@ -8,10 +8,12 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"ebook-cloud/api/apiv1"
+	"ebook-cloud/client"
 	"ebook-cloud/config"
 	"ebook-cloud/models"
+	"ebook-cloud/render"
 	"ebook-cloud/server"
-	"ebook-cloud/client"
+	"ebook-cloud/view"
 )
 
 var confPath string
@@ -51,9 +53,11 @@ func main() {
 
 func runserver(c *cli.Context) error {
 	defer models.DB.Close()
-
 	r := server.CreateServ()
 	apiv1.SetRouter(r)
+	view.SetRouter(r)
+	r.HTMLRender = render.New("static")
+	r.Static("/static", "static")
 	r.Run(config.Conf.Addr)
 	return nil
 }
