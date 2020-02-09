@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"ebook-cloud/api/apiv1"
+	"ebook-cloud/config"
 	"ebook-cloud/models"
 	"ebook-cloud/server"
 	"encoding/json"
@@ -14,6 +15,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +29,7 @@ type TestSuit struct {
 	countryID uint
 	country   *models.Country
 	author    *models.Author
+	book      *models.Book
 }
 
 func (suit *TestSuit) SetupSuite() {
@@ -50,8 +53,14 @@ func (suit *TestSuit) createData() {
 	})
 	models.DB.FirstOrCreate(&book, models.Book{
 		Name: "test",
-		File: "test",
+		File: path.Join(config.Conf.DestPath, "test.mobi"),
 	})
+	dst, _ := os.Create(book.File)
+	src, err := os.Open("./test_file/test.mobi")
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	io.Copy(dst, src)
 	models.DB.FirstOrCreate(&author, models.Author{
 		Name:      "test",
 		CountryID: china.ID,
@@ -59,6 +68,7 @@ func (suit *TestSuit) createData() {
 	models.DB.Model(&author).Association("Books").Append(book)
 	suit.country = &china
 	suit.author = &author
+	suit.book = &book
 }
 
 func (suit *TestSuit) delData() {
@@ -70,37 +80,23 @@ func (suit *TestSuit) delData() {
 
 func (suit *TestSuit) TestGetBooks() {
 	w := httptest.NewRecorder()
-	params := url.Values{}
-	params.Set("page", "1")
-	query := params.Encode()
-	url := "/api/v1/books?"
-	oneURL := url + query
+	oneURL := createQuery("/api/v1/books", map[string]string{"page": "1"})
 	var booksResp struct {
 		Books []models.Book `json:"books"`
 	}
 
 	req, _ := http.NewRequest("GET", oneURL, nil)
 	suit.server.ServeHTTP(w, req)
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, &booksResp); err != nil {
-		assert.Error(suit.T(), err)
-	}
+	unmarshal(w, &booksResp, suit.T())
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), len(booksResp.Books), 1)
 
 	w = httptest.NewRecorder()
-	params.Set("page", "2")
-	query = params.Encode()
-	towURL := url + query
+	twoURL := createQuery("/api/v1/books", map[string]string{"page": "2"})
 
-	req, _ = http.NewRequest("GET", towURL, nil)
+	req, _ = http.NewRequest("GET", twoURL, nil)
 	suit.server.ServeHTTP(w, req)
-	resp = w.Result()
-	body, _ = ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, &booksResp); err != nil {
-		assert.Error(suit.T(), err)
-	}
+	unmarshal(w, &booksResp, suit.T())
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), 0, len(booksResp.Books))
 }
@@ -121,6 +117,7 @@ func (suit *TestSuit) TestPostBook() {
 	}
 	_, err = io.Copy(part, file)
 	_ = writer.WriteField("name", "book")
+	_ = writer.WriteField("format", "mobi")
 	_ = writer.WriteField("author", fmt.Sprint(suit.author.ID))
 	if err = writer.Close(); err != nil {
 		assert.Error(suit.T(), err)
@@ -129,6 +126,14 @@ func (suit *TestSuit) TestPostBook() {
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 201, w.Code)
+}
+
+func (suit *TestSuit) TestGetBookByID() {
+	w := httptest.NewRecorder()
+	url := "/api/v1/books/" + fmt.Sprint(suit.book.ID)
+	req, _ := http.NewRequest("GET", url, nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
 }
 
 func (suit *TestSuit) TestAuthors() {
@@ -141,11 +146,7 @@ func (suit *TestSuit) TestAuthors() {
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/api/v1/authors", nil)
 	suit.server.ServeHTTP(w, req)
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, &authorsResp); err != nil {
-		assert.Error(suit.T(), err)
-	}
+	unmarshal(w, &authorsResp, suit.T())
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), 1, len(authorsResp.Authors))
 
@@ -163,6 +164,14 @@ func (suit *TestSuit) TestAuthors() {
 	assert.Equal(suit.T(), 201, w.Code)
 }
 
+func (suit *TestSuit) TestAuthors400() {
+	w := httptest.NewRecorder()
+	url := createQuery("/api/v1/authors", map[string]string{"page": "s"})
+	req, _ := http.NewRequest("GET", url, nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 400, w.Code)
+}
+
 func (suit *TestSuit) TestCountries() {
 	var countriesResp struct {
 		Countries []models.Country `json:"countries"`
@@ -172,14 +181,26 @@ func (suit *TestSuit) TestCountries() {
 	req, _ := http.NewRequest("GET", "/api/v1/countries", nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 200, w.Code)
-	resp := w.Result()
-	body, _ := ioutil.ReadAll(resp.Body)
-	if err := json.Unmarshal(body, &countriesResp); err != nil {
-		assert.Error(suit.T(), err)
-	}
+	unmarshal(w, &countriesResp, suit.T())
 	assert.Equal(suit.T(), 1, len(countriesResp.Countries))
 }
 
 func TestUserTestSuit(t *testing.T) {
 	suite.Run(t, new(TestSuit))
+}
+
+func createQuery(baseURL string, params map[string]string) string {
+	r := url.Values{}
+	for k, v := range params {
+		r.Set(k, v)
+	}
+	return baseURL + "?" + r.Encode()
+}
+
+func unmarshal(w *httptest.ResponseRecorder, r interface{}, t assert.TestingT) {
+	resp := w.Result()
+	body, _ := ioutil.ReadAll(resp.Body)
+	if err := json.Unmarshal(body, r); err != nil {
+		assert.Error(t, err)
+	}
 }
