@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"ebook-cloud/api/apiv1"
+	"ebook-cloud/client"
 	"ebook-cloud/config"
 	"ebook-cloud/models"
 	"ebook-cloud/server"
@@ -19,6 +20,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -40,6 +42,14 @@ func (suit *TestSuit) SetupSuite() {
 
 func (suit *TestSuit) TearDownSuite() {
 	suit.delData()
+	httpmock.DeactivateAndReset()
+}
+
+func mock() {
+	fixture := `{"id": 1}`
+	responder := httpmock.NewStringResponder(200, fixture)
+	httpmock.ActivateNonDefault(client.UserClient.Client.GetClient())
+	httpmock.RegisterResponder("GET", client.UserClient.VerifyURL, responder)
 }
 
 func (suit *TestSuit) createData() {
@@ -134,6 +144,28 @@ func (suit *TestSuit) TestGetBookByID() {
 	req, _ := http.NewRequest("GET", url, nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 200, w.Code)
+}
+
+func (suit *TestSuit) TestBooks400() {
+	w := httptest.NewRecorder()
+	url := createQuery("/api/v1/books", map[string]string{"page": "s"})
+	req, _ := http.NewRequest("GET", url, nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 400, w.Code)
+}
+
+func (suit *TestSuit) TestBook400() {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/books/s", nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 400, w.Code)
+}
+
+func (suit *TestSuit) TestBook404() {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/books/"+fmt.Sprint(suit.book.ID+1000), nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 404, w.Code)
 }
 
 func (suit *TestSuit) TestAuthors() {
