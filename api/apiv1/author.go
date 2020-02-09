@@ -12,7 +12,7 @@ import (
 func GetAuthors(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
-		c.AbortWithError(401, err)
+		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
 	offsetCount := (page - 1) * 20

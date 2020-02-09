@@ -3,7 +3,6 @@ package apiv1
 import (
 	"ebook-cloud/config"
 	"ebook-cloud/models"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -16,7 +15,7 @@ import (
 func GetBooks(c *gin.Context) {
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
-		c.AbortWithError(401, err)
+		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
 	offsetCount := (page - 1) * 20
@@ -33,6 +32,7 @@ func GetBooks(c *gin.Context) {
 type BookForm struct {
 	Name     string `form:"name" binding:"required"`
 	AuthorID int    `form:"author"`
+	Format   string `form:"format" binding:"required"`
 	// File       *multipart.File
 	// Fileheader *multipart.FileHeader
 }
@@ -45,10 +45,9 @@ func PostBooks(c *gin.Context) {
 	)
 	c.Bind(&bookForm)
 	file, _ := c.FormFile("file")
-	filename := path.Join(config.Conf.DestPath, file.Filename)
-	log.Println(filename)
-
-	if err := c.SaveUploadedFile(file, filename); err != nil {
+	filename := strings.Join([]string{bookForm.Name, bookForm.Format}, ".")
+	dstname := path.Join(config.Conf.DestPath, filename)
+	if err := c.SaveUploadedFile(file, dstname); err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -57,7 +56,7 @@ func PostBooks(c *gin.Context) {
 
 	book := models.Book{
 		Name:   bookForm.Name,
-		File:   filename,
+		File:   dstname,
 		Author: []*models.Author{&author},
 	}
 	models.DB.Create(&book)
