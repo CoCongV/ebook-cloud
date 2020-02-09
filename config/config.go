@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/BurntSushi/toml"
-	"github.com/gin-gonic/gin"
 )
 
 //Config struct
@@ -28,13 +27,5 @@ func Setup() {
 	_, err := toml.DecodeFile(filepath, &Conf)
 	if err != nil {
 		log.Fatal(err)
-	}
-	switch Conf.Mode {
-	case "release":
-		gin.SetMode(gin.ReleaseMode)
-	case "debug":
-		gin.SetMode(gin.DebugMode)
-	default:
-		gin.SetMode(gin.DebugMode)
 	}
 }
