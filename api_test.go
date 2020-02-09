@@ -6,10 +6,14 @@ import (
 	"ebook-cloud/models"
 	"ebook-cloud/server"
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -21,6 +25,8 @@ type TestSuit struct {
 	suite.Suite
 	server    *gin.Engine
 	countryID uint
+	country   *models.Country
+	author    *models.Author
 }
 
 func (suit *TestSuit) SetupSuite() {
@@ -51,7 +57,8 @@ func (suit *TestSuit) createData() {
 		CountryID: china.ID,
 	})
 	models.DB.Model(&author).Association("Books").Append(book)
-	suit.countryID = china.ID
+	suit.country = &china
+	suit.author = &author
 }
 
 func (suit *TestSuit) delData() {
@@ -61,7 +68,7 @@ func (suit *TestSuit) delData() {
 
 }
 
-func (suit *TestSuit) TestBooks() {
+func (suit *TestSuit) TestGetBooks() {
 	w := httptest.NewRecorder()
 	params := url.Values{}
 	params.Set("page", "1")
@@ -98,6 +105,32 @@ func (suit *TestSuit) TestBooks() {
 	assert.Equal(suit.T(), 0, len(booksResp.Books))
 }
 
+func (suit *TestSuit) TestPostBook() {
+	w := httptest.NewRecorder()
+	file, err := os.Open("./test_file/test.mobi")
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", "test.mobi")
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	_, err = io.Copy(part, file)
+	_ = writer.WriteField("name", "book")
+	_ = writer.WriteField("author", fmt.Sprint(suit.author.ID))
+	if err = writer.Close(); err != nil {
+		assert.Error(suit.T(), err)
+	}
+	req, _ := http.NewRequest("POST", "/api/v1/books", body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 201, w.Code)
+}
+
 func (suit *TestSuit) TestAuthors() {
 	var (
 		authorsResp struct {
@@ -119,7 +152,7 @@ func (suit *TestSuit) TestAuthors() {
 	w = httptest.NewRecorder()
 	params := apiv1.AuthorsReqParams{
 		Name:      "test1",
-		CountryID: suit.countryID,
+		CountryID: suit.country.ID,
 	}
 	paramsByte, err := json.Marshal(params)
 	if err != nil {
@@ -128,6 +161,23 @@ func (suit *TestSuit) TestAuthors() {
 	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 201, w.Code)
+}
+
+func (suit *TestSuit) TestCountries() {
+	var countriesResp struct {
+		Countries []models.Country `json:"countries"`
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/v1/countries", nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
+	resp := w.Result()
+	body, _ := ioutil.ReadAll(resp.Body)
+	if err := json.Unmarshal(body, &countriesResp); err != nil {
+		assert.Error(suit.T(), err)
+	}
+	assert.Equal(suit.T(), 1, len(countriesResp.Countries))
 }
 
 func TestUserTestSuit(t *testing.T) {

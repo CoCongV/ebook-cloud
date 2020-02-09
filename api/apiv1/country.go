@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//GetCountries get all authors by pagination
+//GetCountries get all countries
 func GetCountries(c *gin.Context) {
 
 	var countries []models.Country

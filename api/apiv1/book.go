@@ -3,9 +3,9 @@ package apiv1
 import (
 	"ebook-cloud/config"
 	"ebook-cloud/models"
-	"mime/multipart"
+	"log"
 	"net/http"
-	"os"
+	"path"
 	"strconv"
 	"strings"
 
@@ -30,10 +30,10 @@ func GetBooks(c *gin.Context) {
 }
 
 type BookForm struct {
-	Name       string `form:"name" binding:"required"`
-	AuthorID   int    `form:"author"`
-	File       *multipart.File
-	Fileheader *multipart.FileHeader
+	Name     string `form:"name" binding:"required"`
+	AuthorID int    `form:"author"`
+	// File       *multipart.File
+	// Fileheader *multipart.FileHeader
 }
 
 func PostBooks(c *gin.Context) {
@@ -42,11 +42,12 @@ func PostBooks(c *gin.Context) {
 		author   models.Author
 	)
 	c.Bind(&bookForm)
+	file, _ := c.FormFile("file")
+	filename := path.Join(config.Conf.DestPath, file.Filename)
+	log.Println(filename)
 
-	filename := config.Conf.DestPath + bookForm.Fileheader.Filename
-	_, err := os.Create(filename)
-	if err != nil {
-		c.AbortWithError(500, err)
+	if err := c.SaveUploadedFile(file, filename); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
 
@@ -58,7 +59,7 @@ func PostBooks(c *gin.Context) {
 		Author: []*models.Author{&author},
 	}
 	models.DB.Create(&book)
-	c.JSON(200, gin.H{
+	c.JSON(http.StatusCreated, gin.H{
 		"id": book.ID,
 	})
 }
