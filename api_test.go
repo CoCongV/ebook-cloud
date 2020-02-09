@@ -170,6 +170,31 @@ func (suit *TestSuit) TestAuthors400() {
 	req, _ := http.NewRequest("GET", url, nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 400, w.Code)
+
+	w = httptest.NewRecorder()
+	params := apiv1.AuthorsReqParams{
+		Name: "test1",
+	}
+	paramsByte, err := json.Marshal(params)
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 400, w.Code)
+
+	w = httptest.NewRecorder()
+	params = apiv1.AuthorsReqParams{
+		Name:      "test1",
+		CountryID: 1000000,
+	}
+	paramsByte, err = json.Marshal(params)
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 400, w.Code)
 }
 
 func (suit *TestSuit) TestCountries() {

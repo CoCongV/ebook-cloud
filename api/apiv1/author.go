@@ -26,10 +26,10 @@ func GetAuthors(c *gin.Context) {
 	c.JSON(200, h)
 }
 
-//AuthorsReq is ...
+//AuthorsReqParams is post authors json struct
 type AuthorsReqParams struct {
-	Name      string `json:"name"`
-	CountryID uint   `json:"country_id"`
+	Name      string `json:"name" binding:"required"`
+	CountryID uint   `json:"country_id" binding:"required"`
 }
 
 //PostAuthors is ...
@@ -38,16 +38,17 @@ func PostAuthors(c *gin.Context) {
 		authorReq AuthorsReqParams
 		country   models.Country
 	)
-	err := c.BindJSON(&authorReq)
-	if err != nil {
+	if err := c.BindJSON(&authorReq); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+
 	models.DB.Find(&country, authorReq.CountryID)
 	if country.ID == 0 {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"message": "country not found",
 		})
+		return
 	}
 	author := models.Author{
 		Name:      authorReq.Name,
