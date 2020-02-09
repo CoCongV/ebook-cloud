@@ -53,11 +53,13 @@ func PostBooks(c *gin.Context) {
 	}
 
 	models.DB.Find(&author, bookForm.AuthorID)
-
+	uidInterfae, _ := c.Get("uid")
+	uid := uidInterfae.(uint)
 	book := models.Book{
 		Name:   bookForm.Name,
 		File:   dstname,
 		Author: []*models.Author{&author},
+		UserID: uid,
 	}
 	models.DB.Create(&book)
 	c.JSON(http.StatusCreated, gin.H{

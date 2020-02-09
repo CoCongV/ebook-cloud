@@ -38,6 +38,7 @@ func (suit *TestSuit) SetupSuite() {
 	suit.server = server.CreateServ()
 	apiv1.SetRouter(suit.server)
 	suit.createData()
+	mock()
 }
 
 func (suit *TestSuit) TearDownSuite() {
@@ -181,8 +182,10 @@ func (suit *TestSuit) TestAuthors() {
 	unmarshal(w, &authorsResp, suit.T())
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), 1, len(authorsResp.Authors))
+}
 
-	w = httptest.NewRecorder()
+func (suit *TestSuit) TestPostAuthor() {
+	w := httptest.NewRecorder()
 	params := apiv1.AuthorsReqParams{
 		Name:      "test1",
 		CountryID: suit.country.ID,
@@ -191,7 +194,7 @@ func (suit *TestSuit) TestAuthors() {
 	if err != nil {
 		assert.Error(suit.T(), err)
 	}
-	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
+	req, _ := http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 201, w.Code)
 }

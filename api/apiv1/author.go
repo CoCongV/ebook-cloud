@@ -50,9 +50,12 @@ func PostAuthors(c *gin.Context) {
 		})
 		return
 	}
+	uidInterface, _ := c.Get("uid")
+	uid := uidInterface.(uint)
 	author := models.Author{
 		Name:      authorReq.Name,
 		CountryID: authorReq.CountryID,
+		UserID:    uid,
 	}
 	models.DB.Create(&author)
 	c.JSON(http.StatusCreated, gin.H{

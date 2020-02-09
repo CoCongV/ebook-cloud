@@ -19,7 +19,7 @@ type userClient struct {
 }
 
 type VerifyUserResp struct {
-	ID int
+	ID uint
 }
 
 //UserClient is UserClientStruct point
@@ -41,7 +41,7 @@ func Setup() {
 	}
 }
 
-func (u *userClient) VerifyUser(token string) (int, error) {
+func (u *userClient) VerifyUser(token string) (uint, error) {
 	var result VerifyUserResp
 	// resp, err := u.Client.R().SetHeader("Authorization", token).Get(u.verifyURL)
 	resp, err := u.Client.R().SetAuthToken(token).SetResult(&result).Get(u.VerifyURL)

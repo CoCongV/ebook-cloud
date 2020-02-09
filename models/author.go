@@ -21,6 +21,7 @@ func (c Country) String() string {
 type Author struct {
 	gorm.Model
 	Name      string `gorm:"type:varchar(32);unique_index;not null"`
+	UserID    uint
 	CountryID uint
 	Books     []*Book `gorm:"many2many:author_books;"`
 }
