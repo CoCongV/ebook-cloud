@@ -13,7 +13,7 @@ type Config struct {
 	SecretKey         string `toml:"secret_key"`
 	ExpiresAt         int64  `toml:"expires_at"`
 	Mode              string `toml:"mode"`
-	UserServerURL     string `toml:"user_server_url"`
+	VerifyUserURL     string `toml:"verify_user_url"`
 	UserServerTimeout int    `toml:"user_server_timeout"`
 	DestPath          string `toml:"dest_path"`
 }

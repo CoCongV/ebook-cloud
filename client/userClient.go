@@ -1,9 +1,9 @@
 package client
 
 import (
+	"errors"
 	"net/http"
 	"net/http/cookiejar"
-	"path"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -14,13 +14,12 @@ import (
 
 //userClient is ...
 type userClient struct {
-	baseURL   string
-	verifyURL string
-	client    *resty.Client
+	VerifyURL string
+	Client    *resty.Client
 }
 
-type verifyUserResp struct {
-	id int
+type VerifyUserResp struct {
+	ID int
 }
 
 //UserClient is UserClientStruct point
@@ -36,22 +35,21 @@ func Setup() {
 	if config.Conf.UserServerTimeout != 0 {
 		httpClient.Timeout = time.Duration(config.Conf.UserServerTimeout) * time.Second
 	}
-
 	UserClient = &userClient{
-		baseURL:   config.Conf.UserServerURL,
-		verifyURL: path.Join(config.Conf.UserServerURL, "/api/v1/verify_auth_token"),
-		client:    resty.NewWithClient(&httpClient),
+		VerifyURL: config.Conf.VerifyUserURL,
+		Client:    resty.NewWithClient(&httpClient),
 	}
 }
 
-func (u *userClient) VerifyUser(token string) (int, bool, error) {
-	resp, err := u.client.R().SetHeader("Authorization", token).Get(u.verifyURL)
+func (u *userClient) VerifyUser(token string) (int, error) {
+	var result VerifyUserResp
+	// resp, err := u.Client.R().SetHeader("Authorization", token).Get(u.verifyURL)
+	resp, err := u.Client.R().SetAuthToken(token).SetResult(&result).Get(u.VerifyURL)
 	if err != nil {
-		return 0, false, err
+		return 0, err
 	}
 	if resp.StatusCode() == http.StatusOK {
-		return resp.Result().(verifyUserResp).id, true, nil
-	} else {
-		return 0, false, nil
+		return result.ID, nil
 	}
+	return 0, errors.New("Verify False")
 }
