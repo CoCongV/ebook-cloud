@@ -29,6 +29,7 @@ func GetBooks(c *gin.Context) {
 	})
 }
 
+//BookForm is form struct
 type BookForm struct {
 	Name     string `form:"name" binding:"required"`
 	AuthorID int    `form:"author"`
@@ -36,6 +37,7 @@ type BookForm struct {
 	// Fileheader *multipart.FileHeader
 }
 
+//PostBooks is create and save book
 func PostBooks(c *gin.Context) {
 	var (
 		bookForm BookForm
