@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row" id="books">
+        {% for b in books %}
+            <div class="col-sm-6 col-md-3 col-lg-2">
+                <div class="thumbnail">
+                    <img src={{b.CoverImg}} alt={{b.Name}}>
+                    <div class="caption">
+                        <h3>{{b.Name}}</h3>
+                        {% for a in b.Authors %}
+                        <p><a>{{a.Name}}</a></p>
+                        {% endfor %}
+                        <p>
+                            <a href="/api/v1/books/{{b.ID}}" class="btn btn-primary" role="button">下载</a> 
+                            <a href="#" class="btn btn-default"role="button">推送</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

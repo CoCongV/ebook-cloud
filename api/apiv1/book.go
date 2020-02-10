@@ -56,10 +56,10 @@ func PostBooks(c *gin.Context) {
 	uidInterfae, _ := c.Get("uid")
 	uid := uidInterfae.(uint)
 	book := models.Book{
-		Name:   bookForm.Name,
-		File:   dstname,
-		Author: []*models.Author{&author},
-		UserID: uid,
+		Name:    bookForm.Name,
+		File:    dstname,
+		Authors: []*models.Author{&author},
+		UserID:  uid,
 	}
 	models.DB.Create(&book)
 	c.JSON(http.StatusCreated, gin.H{
@@ -87,6 +87,6 @@ func GetBook(c *gin.Context) {
 	}
 
 	ss := strings.Split(book.File, ".")
-	filename := book.Name + ss[len(ss)-1]
+	filename := book.Name + "." + ss[len(ss)-1]
 	c.FileAttachment(book.File, filename)
 }

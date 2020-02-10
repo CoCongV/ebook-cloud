@@ -56,7 +56,7 @@ func runserver(c *cli.Context) error {
 	r := server.CreateServ()
 	apiv1.SetRouter(r)
 	view.SetRouter(r)
-	r.HTMLRender = render.New("static")
+	r.HTMLRender = render.New("static/template")
 	r.Static("/static", "static")
 	r.Run(config.Conf.Addr)
 	return nil

@@ -1,7 +1,7 @@
 dbURL = "host=127.0.0.1 port=5432 user=lvcong dbname=ebook password=password sslmode=disable"
-addr = "localhost:8002"
+addr = ":8002"
 secret_key = "f3efef74-c99f-4224-9491-2f347d5318b5"
-mode = "test"
+mode = "debug"
 verify_user_url = "http://localhost:8001/api/v1/verify_auth"
 user_server_timeout = 5
 dest_path = "/tmp/books"
