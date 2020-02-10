@@ -25,7 +25,7 @@ func BookView(c *gin.Context) {
 		next  bool
 	)
 	models.DB.Model(&models.Book{}).Count(&count)
-	models.DB.Offset(offsetCount).Limit(itemCount).Find(&books)
+	models.DB.Offset(offsetCount).Limit(itemCount).Preload("Authors").Find(&books)
 	if page == 1 {
 		prev = false
 	} else if page > 1 && len(books) > 1 {

@@ -55,8 +55,6 @@ type BookForm struct {
 	Name     string `form:"name" binding:"required"`
 	AuthorID int    `form:"author"`
 	Format   string `form:"format" binding:"required"`
-	// File       *multipart.File
-	// Fileheader *multipart.FileHeader
 }
 
 //PostBooks is create and save book
@@ -73,15 +71,16 @@ func PostBooks(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-
-	models.DB.Find(&author, bookForm.AuthorID)
-	uidInterfae, _ := c.Get("uid")
-	uid := uidInterfae.(uint)
+	// uidInterfae, _ := c.Get("uid")
+	// uid := uidInterfae.(uint)
 	book := models.Book{
-		Name:    bookForm.Name,
-		File:    dstname,
-		Authors: []*models.Author{&author},
-		UserID:  uid,
+		Name: bookForm.Name,
+		File: dstname,
+		// UserID: uid,
+	}
+	if bookForm.AuthorID != 0 {
+		models.DB.Find(&author, bookForm.AuthorID)
+		book.Authors = []*models.Author{&author}
 	}
 	models.DB.Create(&book)
 	c.JSON(http.StatusCreated, gin.H{

@@ -16,6 +16,7 @@ type Config struct {
 	VerifyUserURL     string `toml:"verify_user_url"`
 	UserServerTimeout int    `toml:"user_server_timeout"`
 	DestPath          string `toml:"dest_path"`
+	DefaultCoverImg   string `toml:"default_cover_img"`
 }
 
 //Conf is struct Config point
