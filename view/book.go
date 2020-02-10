@@ -18,7 +18,31 @@ func BookView(c *gin.Context) {
 	}
 	offsetCount := (page - 1) * 20
 	itemCount := 20
-	var books []models.Book
-	models.DB.Offset(offsetCount).Limit(itemCount).Preload("Authors").Find(&books)
-	c.HTML(http.StatusOK, "index.html", pongo2.Context{"books": books})
+	var (
+		books []models.Book
+		count int
+		prev  bool
+		next  bool
+	)
+	models.DB.Model(&models.Book{}).Count(&count)
+	models.DB.Offset(offsetCount).Limit(itemCount).Find(&books)
+	if page == 1 {
+		prev = false
+	} else if page > 1 && len(books) > 1 {
+		prev = true
+	} else {
+		prev = false
+	}
+
+	if itemCount*page > count {
+		next = false
+	} else {
+		next = true
+	}
+
+	c.HTML(http.StatusOK, "index.html", pongo2.Context{
+		"books": books,
+		"next":  next,
+		"prev":  prev,
+	})
 }

@@ -21,10 +21,32 @@ func GetBooks(c *gin.Context) {
 	offsetCount := (page - 1) * 20
 	itemCount := 20
 
-	var books []models.Book
+	var (
+		books []models.Book
+		count int
+		prev  bool
+		next  bool
+	)
+	models.DB.Model(&models.Book{}).Count(&count)
 	models.DB.Offset(offsetCount).Limit(itemCount).Find(&books)
+	if page == 1 {
+		prev = false
+	} else if page > 1 && len(books) > 1 {
+		prev = true
+	} else {
+		prev = false
+	}
+
+	if itemCount*page > count {
+		next = false
+	} else {
+		next = true
+	}
+
 	c.JSON(200, gin.H{
 		"books": books,
+		"prev":  prev,
+		"next":  next,
 	})
 }
 
