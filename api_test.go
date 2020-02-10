@@ -65,6 +65,7 @@ func (suit *TestSuit) createData() {
 	models.DB.FirstOrCreate(&book, models.Book{
 		Name: "test",
 		File: path.Join(config.Conf.DestPath, "test.mobi"),
+		// CoverImg: config.Conf.DefaultImg,
 	})
 	dst, _ := os.Create(book.File)
 	src, err := os.Open("./test_file/test.mobi")
@@ -114,7 +115,7 @@ func (suit *TestSuit) TestGetBooks() {
 
 func (suit *TestSuit) TestPostBook() {
 	w := httptest.NewRecorder()
-	file, err := os.Open("./test_file/test.mobi")
+	file, err := os.Open("./test_file/test.pdf")
 	if err != nil {
 		assert.Error(suit.T(), err)
 	}
