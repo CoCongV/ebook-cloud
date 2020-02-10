@@ -3,3 +3,6 @@ outtest:
 
 showcover:
 	go tool cover -html=c.out
+	
+rundebug:
+	air -c .air.conf
