@@ -17,6 +17,7 @@ type Config struct {
 	UserServerTimeout int    `toml:"user_server_timeout"`
 	DestPath          string `toml:"dest_path"`
 	DefaultCoverImg   string `toml:"default_cover_img"`
+	SearchIndexFile   string `toml:"search_index_file"`
 }
 
 //Conf is struct Config point

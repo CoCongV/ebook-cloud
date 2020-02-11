@@ -6,3 +6,4 @@ verify_user_url = "http://localhost:8001/api/v1/verify_auth"
 user_server_timeout = 5
 dest_path = "/tmp/books"
 default_cover_img = "static/img/default.jpeg"
+search_index_file = "/tmp/books.bleve"
