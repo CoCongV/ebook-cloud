@@ -34,10 +34,10 @@ func GetBooks(c *gin.Context) {
 	offsetCount := (page - 1) * 20
 	itemCount := 20
 
-	models.DB.Model(&models.Book{}).Count(&count)
-	db := models.DB.Offset(offsetCount).Limit(itemCount)
+	db := models.DB.Offset(offsetCount).Limit(itemCount).Preload("Authors")
 
 	if ok == false {
+		models.DB.Model(&models.Book{}).Count(&count)
 		db.Find(&books)
 	} else {
 		bleveQuery := bleve.NewMatchQuery(queryName)
@@ -56,6 +56,7 @@ func GetBooks(c *gin.Context) {
 			idSlice = append(idSlice, id)
 			log.Println(id)
 		}
+		models.DB.Where("id in (?)", idSlice).Model(&models.Book{}).Count(&count)
 		db.Where("id in (?)", idSlice).Find(&books)
 	}
 
