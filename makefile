@@ -1,5 +1,5 @@
 outtest:
-	go test -coverprofile=c.out -coverpkg ebook-cloud,ebook-cloud/api,ebook-cloud/api/apiv1,ebook-cloud/config,ebook-cloud/models,ebook-cloud/server,ebook-cloud/client,ebook-cloud/render
+	go test -coverprofile=c.out -coverpkg ebook-cloud,ebook-cloud/api,ebook-cloud/api/apiv1,ebook-cloud/config,ebook-cloud/models,ebook-cloud/server,ebook-cloud/client,ebook-cloud/render,ebook-cloud/search
 
 showcover:
 	go tool cover -html=c.out
