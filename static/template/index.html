@@ -28,13 +28,13 @@
 <nav>
     <ul class="pager">
         {% if prev %}
-            <li class=""><a href="/api/v1/books?page={{ page - 1}}"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></a></li>
+            <li class=""><a href="/?page={{ page - 1}}"><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></a></li>
         {% else %}
             <li class="disabled"><a><span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span></a></li>
         {% endif %}
         
         {% if next %}
-            <li class=""><a href="/api/v1/books?page={{ page + 1}}"><span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span></a></li>
+            <li class=""><a href="/?page={{ page + 1}}"><span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span></a></li>
         {% else %}
             <li class="disabled"><a><span class="glyphicon glyphicon-arrow-right" aria-hidden="true"></span></a></li>
         {% endif %}
