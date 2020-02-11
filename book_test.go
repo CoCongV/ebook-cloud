@@ -32,7 +32,9 @@ type TestSuit struct {
 	countryID uint
 	country   *models.Country
 	author    *models.Author
+	author1   *models.Author
 	book      *models.Book
+	tag       *models.Tag
 }
 
 func (suit *TestSuit) SetupSuite() {
@@ -56,12 +58,17 @@ func mock() {
 
 func (suit *TestSuit) createData() {
 	var (
-		china  models.Country
-		author models.Author
-		book   models.Book
+		china   models.Country
+		author  models.Author
+		author1 models.Author
+		book    models.Book
+		tag     models.Tag
 	)
 	models.DB.FirstOrCreate(&china, models.Country{
 		Name: "China",
+	})
+	models.DB.FirstOrCreate(&tag, models.Tag{
+		Name: "test",
 	})
 
 	models.DB.FirstOrCreate(&book, models.Book{
@@ -80,10 +87,17 @@ func (suit *TestSuit) createData() {
 		Name:      "test",
 		CountryID: china.ID,
 	})
+	models.DB.FirstOrCreate(&author1, models.Author{
+		Name:      "test1",
+		CountryID: china.ID,
+	})
+
 	models.DB.Model(&author).Association("Books").Append(book)
 	suit.country = &china
 	suit.author = &author
+	suit.author1 = &author1
 	suit.book = &book
+	suit.tag = &tag
 }
 
 func (suit *TestSuit) delData() {
@@ -95,23 +109,23 @@ func (suit *TestSuit) delData() {
 
 func (suit *TestSuit) TestGetBooks() {
 	w := httptest.NewRecorder()
-	oneURL := createQuery("/api/v1/books", map[string]string{"page": "1"})
+	oneURL := CreateQuery("/api/v1/books", map[string]string{"page": "1"})
 	var booksResp struct {
 		Books []models.Book `json:"books"`
 	}
 
 	req, _ := http.NewRequest("GET", oneURL, nil)
 	suit.server.ServeHTTP(w, req)
-	unmarshal(w, &booksResp, suit.T())
+	CustomUnmarshal(w, &booksResp, suit.T())
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), len(booksResp.Books), 1)
 
 	w = httptest.NewRecorder()
-	twoURL := createQuery("/api/v1/books", map[string]string{"page": "2"})
+	twoURL := CreateQuery("/api/v1/books", map[string]string{"page": "2"})
 
 	req, _ = http.NewRequest("GET", twoURL, nil)
 	suit.server.ServeHTTP(w, req)
-	unmarshal(w, &booksResp, suit.T())
+	CustomUnmarshal(w, &booksResp, suit.T())
 	assert.Equal(suit.T(), 200, w.Code)
 	assert.Equal(suit.T(), 0, len(booksResp.Books))
 }
@@ -153,7 +167,7 @@ func (suit *TestSuit) TestGetBookByID() {
 
 func (suit *TestSuit) TestBooks400() {
 	w := httptest.NewRecorder()
-	url := createQuery("/api/v1/books", map[string]string{"page": "s"})
+	url := CreateQuery("/api/v1/books", map[string]string{"page": "s"})
 	req, _ := http.NewRequest("GET", url, nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 400, w.Code)
@@ -164,12 +178,41 @@ func (suit *TestSuit) TestQueryBook() {
 		Books []models.Book `json:"books"`
 	}
 	w := httptest.NewRecorder()
-	url := createQuery("/api/v1/books", map[string]string{"page": "1", "name": "test"})
+	url := CreateQuery("/api/v1/books", map[string]string{"page": "1", "name": "test"})
 	req, _ := http.NewRequest("GET", url, nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 200, w.Code)
-	unmarshal(w, &booksResp, suit.T())
+	CustomUnmarshal(w, &booksResp, suit.T())
 	assert.Equal(suit.T(), 1, len(booksResp.Books))
+}
+
+func (suit *TestSuit) TestPatchBook() {
+	var patchResp struct {
+		Book models.Book `json:"book"`
+	}
+	reqJSON := struct {
+		Name    string `json:"name"`
+		Authors []uint `json:"authors"`
+		Tags    []uint `json:"tags"`
+	}{
+		Name:    "patchtest",
+		Authors: []uint{suit.author.ID, suit.author1.ID},
+		Tags:    []uint{suit.tag.ID},
+	}
+	paramsBytes, err := json.Marshal(reqJSON)
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("PATCH", "/api/v1/books/"+fmt.Sprint(suit.book.ID), bytes.NewBuffer(paramsBytes))
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
+	CustomUnmarshal(w, &patchResp, suit.T())
+	assert.Equal(suit.T(), "patchtest", patchResp.Book.Name)
+	assert.Equal(suit.T(), suit.author.ID, patchResp.Book.Authors[0].ID)
+	assert.Equal(suit.T(), suit.author1.ID, patchResp.Book.Authors[1].ID)
+	assert.Equal(suit.T(), suit.tag.ID, patchResp.Book.Tags[0].ID)
 }
 
 func (suit *TestSuit) TestBook400() {
@@ -186,69 +229,6 @@ func (suit *TestSuit) TestBook404() {
 	assert.Equal(suit.T(), 404, w.Code)
 }
 
-func (suit *TestSuit) TestAuthors() {
-	var (
-		authorsResp struct {
-			Authors []models.Author `json:"authors"`
-		}
-	)
-
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/api/v1/authors", nil)
-	suit.server.ServeHTTP(w, req)
-	unmarshal(w, &authorsResp, suit.T())
-	assert.Equal(suit.T(), 200, w.Code)
-	assert.Equal(suit.T(), 1, len(authorsResp.Authors))
-}
-
-func (suit *TestSuit) TestPostAuthor() {
-	w := httptest.NewRecorder()
-	params := apiv1.AuthorsReqParams{
-		Name:      "test1",
-		CountryID: suit.country.ID,
-	}
-	paramsByte, err := json.Marshal(params)
-	if err != nil {
-		assert.Error(suit.T(), err)
-	}
-	req, _ := http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
-	suit.server.ServeHTTP(w, req)
-	assert.Equal(suit.T(), 201, w.Code)
-}
-
-func (suit *TestSuit) TestAuthors400() {
-	w := httptest.NewRecorder()
-	url := createQuery("/api/v1/authors", map[string]string{"page": "s"})
-	req, _ := http.NewRequest("GET", url, nil)
-	suit.server.ServeHTTP(w, req)
-	assert.Equal(suit.T(), 400, w.Code)
-
-	w = httptest.NewRecorder()
-	params := apiv1.AuthorsReqParams{
-		Name: "test1",
-	}
-	paramsByte, err := json.Marshal(params)
-	if err != nil {
-		assert.Error(suit.T(), err)
-	}
-	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
-	suit.server.ServeHTTP(w, req)
-	assert.Equal(suit.T(), 400, w.Code)
-
-	w = httptest.NewRecorder()
-	params = apiv1.AuthorsReqParams{
-		Name:      "test1",
-		CountryID: 1000000,
-	}
-	paramsByte, err = json.Marshal(params)
-	if err != nil {
-		assert.Error(suit.T(), err)
-	}
-	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
-	suit.server.ServeHTTP(w, req)
-	assert.Equal(suit.T(), 400, w.Code)
-}
-
 func (suit *TestSuit) TestCountries() {
 	var countriesResp struct {
 		Countries []models.Country `json:"countries"`
@@ -258,15 +238,15 @@ func (suit *TestSuit) TestCountries() {
 	req, _ := http.NewRequest("GET", "/api/v1/countries", nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 200, w.Code)
-	unmarshal(w, &countriesResp, suit.T())
+	CustomUnmarshal(w, &countriesResp, suit.T())
 	assert.Equal(suit.T(), 1, len(countriesResp.Countries))
 }
 
-func TestUserTestSuit(t *testing.T) {
+func TestApiTestSuit(t *testing.T) {
 	suite.Run(t, new(TestSuit))
 }
 
-func createQuery(baseURL string, params map[string]string) string {
+func CreateQuery(baseURL string, params map[string]string) string {
 	r := url.Values{}
 	for k, v := range params {
 		r.Set(k, v)
@@ -274,7 +254,7 @@ func createQuery(baseURL string, params map[string]string) string {
 	return baseURL + "?" + r.Encode()
 }
 
-func unmarshal(w *httptest.ResponseRecorder, r interface{}, t assert.TestingT) {
+func CustomUnmarshal(w *httptest.ResponseRecorder, r interface{}, t assert.TestingT) {
 	resp := w.Result()
 	body, _ := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal(body, r); err != nil {

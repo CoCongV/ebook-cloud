@@ -5,7 +5,6 @@ import (
 	"ebook-cloud/models"
 	"ebook-cloud/search"
 	"fmt"
-	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -54,7 +53,6 @@ func GetBooks(c *gin.Context) {
 				return
 			}
 			idSlice = append(idSlice, id)
-			log.Println(id)
 		}
 		models.DB.Where("id in (?)", idSlice).Model(&models.Book{}).Count(&count)
 		db.Where("id in (?)", idSlice).Find(&books)
@@ -142,4 +140,49 @@ func GetBook(c *gin.Context) {
 	ss := strings.Split(book.File, ".")
 	filename := book.Name + "." + ss[len(ss)-1]
 	c.FileAttachment(book.File, filename)
+}
+
+type UpdateBookJson struct {
+	Name    string  `json:"name" binding:"required"`
+	Authors *[]uint `json:"authors"`
+	Tags    *[]uint `json:"tags"`
+}
+
+func PatchBook(c *gin.Context) {
+	var (
+		bookuri  BookURI
+		book     models.Book
+		bookJSON UpdateBookJson
+		authors  []models.Author
+		tags     []models.Tag
+	)
+
+	if err := c.ShouldBindUri(&bookuri); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	if err := c.BindJSON(&bookJSON); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	models.DB.First(&book, bookuri.ID)
+
+	if bookJSON.Authors != nil {
+		models.DB.Where("id in (?)", *(bookJSON.Authors)).Find(&authors)
+		models.DB.Model(&book).Association("Authors").Replace(authors)
+	}
+	if bookJSON.Tags != nil {
+		models.DB.Where("id in (?)", *(bookJSON.Tags)).Find(&tags)
+		models.DB.Model(&book).Association("Tags").Append(tags)
+	}
+
+	models.DB.First(&book, bookuri.ID).Update(&models.Book{
+		Name: bookJSON.Name,
+	})
+	c.AbortWithStatusJSON(
+		http.StatusOK, gin.H{
+			"book": book,
+		},
+	)
 }
