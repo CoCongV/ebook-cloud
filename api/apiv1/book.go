@@ -3,32 +3,62 @@ package apiv1
 import (
 	"ebook-cloud/config"
 	"ebook-cloud/models"
+	"ebook-cloud/search"
+	"fmt"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
 	"strings"
 
+	"github.com/blevesearch/bleve"
 	"github.com/gin-gonic/gin"
 )
 
 // GetBooks get all books
 func GetBooks(c *gin.Context) {
+	var (
+		books   []models.Book
+		count   int
+		prev    bool
+		next    bool
+		idSlice []int
+	)
+
 	page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
+	queryName, ok := c.GetQuery("name")
 	offsetCount := (page - 1) * 20
 	itemCount := 20
 
-	var (
-		books []models.Book
-		count int
-		prev  bool
-		next  bool
-	)
 	models.DB.Model(&models.Book{}).Count(&count)
-	models.DB.Offset(offsetCount).Limit(itemCount).Find(&books)
+	db := models.DB.Offset(offsetCount).Limit(itemCount)
+
+	if ok == false {
+		db.Find(&books)
+	} else {
+		bleveQuery := bleve.NewMatchQuery(queryName)
+		searchReq := bleve.NewSearchRequest(bleveQuery)
+		searchResults, err := search.Index.Search(searchReq)
+		if err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+		for _, s := range searchResults.Hits {
+			id, err := strconv.Atoi(s.ID)
+			if err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+			idSlice = append(idSlice, id)
+			log.Println(id)
+		}
+		db.Where("id in (?)", idSlice).Find(&books)
+	}
+
 	if page == 1 {
 		prev = false
 	} else if page > 1 && len(books) > 1 {
@@ -83,6 +113,7 @@ func PostBooks(c *gin.Context) {
 		book.Authors = []*models.Author{&author}
 	}
 	models.DB.Create(&book)
+	search.Index.Index(fmt.Sprint(book.ID), search.BookIndex{book.Name})
 	c.JSON(http.StatusCreated, gin.H{
 		"id": book.ID,
 	})
