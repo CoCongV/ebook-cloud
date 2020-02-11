@@ -12,6 +12,7 @@ import (
 	"ebook-cloud/config"
 	"ebook-cloud/models"
 	"ebook-cloud/render"
+	"ebook-cloud/search"
 	"ebook-cloud/server"
 	"ebook-cloud/view"
 )
@@ -28,6 +29,7 @@ func init() {
 	config.Setup()
 	models.Setup()
 	client.Setup()
+	search.Setup()
 }
 
 func main() {
