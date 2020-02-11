@@ -17,10 +17,10 @@ type Tag struct {
 // Book is Model
 type Book struct {
 	gorm.Model
-	Name     string `gorm:"type:varchar(32);not null"`
-	File     string `gorm:"not null;type:varchar(64)"`
+	Name     string `gorm:"type:varchar(64);not null"`
+	File     string `gorm:"not null;type:varchar(128)"`
 	UserID   uint
-	CoverImg string `gorm:"type:varchar(64)"`
+	CoverImg string `gorm:"type:varchar(128)"`
 	Describe string
 	Authors  []*Author `gorm:"many2many:author_books;"`
 	Tags     []*Tag    `gorm:"many2many:book_tags;"`

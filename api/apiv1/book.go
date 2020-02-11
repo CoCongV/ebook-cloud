@@ -102,12 +102,12 @@ func PostBooks(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	// uidInterfae, _ := c.Get("uid")
-	// uid := uidInterfae.(uint)
+	uidInterfae, _ := c.Get("uid")
+	uid := uidInterfae.(uint)
 	book := models.Book{
-		Name: bookForm.Name,
-		File: dstname,
-		// UserID: uid,
+		Name:   bookForm.Name,
+		File:   dstname,
+		UserID: uid,
 	}
 	if bookForm.AuthorID != 0 {
 		models.DB.Find(&author, bookForm.AuthorID)
