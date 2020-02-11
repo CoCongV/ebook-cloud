@@ -6,6 +6,7 @@ import (
 	"ebook-cloud/client"
 	"ebook-cloud/config"
 	"ebook-cloud/models"
+	"ebook-cloud/search"
 	"ebook-cloud/server"
 	"encoding/json"
 	"fmt"
@@ -62,10 +63,10 @@ func (suit *TestSuit) createData() {
 	models.DB.FirstOrCreate(&china, models.Country{
 		Name: "China",
 	})
+
 	models.DB.FirstOrCreate(&book, models.Book{
 		Name: "test",
 		File: path.Join(config.Conf.DestPath, "test.mobi"),
-		// CoverImg: config.Conf.DefaultImg,
 	})
 	dst, _ := os.Create(book.File)
 	src, err := os.Open("./test_file/test.mobi")
@@ -73,6 +74,8 @@ func (suit *TestSuit) createData() {
 		assert.Error(suit.T(), err)
 	}
 	io.Copy(dst, src)
+	search.Index.Index(fmt.Sprint(book.ID), search.BookIndex{book.Name})
+
 	models.DB.FirstOrCreate(&author, models.Author{
 		Name:      "test",
 		CountryID: china.ID,
@@ -87,7 +90,7 @@ func (suit *TestSuit) delData() {
 	models.DB.Unscoped().Delete(&models.Book{})
 	models.DB.Unscoped().Delete(&models.Author{})
 	models.DB.Unscoped().Delete(&models.Country{})
-
+	os.RemoveAll(config.Conf.SearchIndexFile)
 }
 
 func (suit *TestSuit) TestGetBooks() {
@@ -154,6 +157,19 @@ func (suit *TestSuit) TestBooks400() {
 	req, _ := http.NewRequest("GET", url, nil)
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 400, w.Code)
+}
+
+func (suit *TestSuit) TestQueryBook() {
+	var booksResp struct {
+		Books []models.Book `json:"books"`
+	}
+	w := httptest.NewRecorder()
+	url := createQuery("/api/v1/books", map[string]string{"page": "1", "name": "test"})
+	req, _ := http.NewRequest("GET", url, nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
+	unmarshal(w, &booksResp, suit.T())
+	assert.Equal(suit.T(), 1, len(booksResp.Books))
 }
 
 func (suit *TestSuit) TestBook400() {
