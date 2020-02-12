@@ -6,3 +6,6 @@ showcover:
 	
 rundebug:
 	air -c .air.conf
+
+build:
+	sh build.sh & tar -cvf ebook-cloud.tar dist/* static/
