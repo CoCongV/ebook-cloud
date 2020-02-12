@@ -177,12 +177,41 @@ func PatchBook(c *gin.Context) {
 		models.DB.Model(&book).Association("Tags").Append(tags)
 	}
 
-	models.DB.First(&book, bookuri.ID).Update(&models.Book{
-		Name: bookJSON.Name,
-	})
+	models.DB.First(&book, bookuri.ID).Update("name", bookJSON.Name)
 	c.AbortWithStatusJSON(
 		http.StatusOK, gin.H{
 			"book": book,
 		},
 	)
+}
+
+func PutBook(c *gin.Context) {
+	var (
+		bookuri BookURI
+		book    models.Book
+	)
+	if err := c.ShouldBindUri(&bookuri); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	models.DB.Find(&book, bookuri.ID)
+
+	file, _ := c.FormFile("file")
+	ss := strings.Split(file.Filename, ".")
+	format := ss[len(ss)-1]
+	filename := strings.Join([]string{book.Name, format}, ".")
+	dst := path.Join(config.Conf.DestPath, filename)
+	book.File = dst
+	if err := models.DB.Save(&book).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "file existed",
+		})
+		return
+	}
+	if err := c.SaveUploadedFile(file, dst); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }

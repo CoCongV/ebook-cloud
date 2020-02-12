@@ -3,6 +3,7 @@ package render
 import (
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/flosch/pongo2"
 	"github.com/gin-gonic/gin/render"
@@ -24,7 +25,13 @@ type (
 var htmlContentType = []string{"application/html; charset=utf-8"}
 
 func New(path string) *PongoProduction {
+	pongo2.RegisterFilter("getFormat", getFormat)
 	return &PongoProduction{map[string]*pongo2.Template{}, path}
+}
+
+func getFormat(in, param *pongo2.Value) (*pongo2.Value, *pongo2.Error) {
+	ss := strings.Split(in.String(), ".")
+	return pongo2.AsValue(ss[len(ss)-1]), nil
 }
 
 func (p PongoProduction) Instance(name string, data interface{}) render.Render {

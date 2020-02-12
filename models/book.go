@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	"ebook-cloud/config"
 
@@ -35,4 +36,9 @@ func (b *Book) BeforeSave() error {
 		b.CoverImg = config.Conf.DefaultCoverImg
 	}
 	return nil
+}
+
+func (b *Book) GetFormat() string {
+	ss := strings.Split(b.File, ".")
+	return ss[len(ss)-1]
 }

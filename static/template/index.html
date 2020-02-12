@@ -9,6 +9,7 @@
                     <img src={{b.CoverImg}} alt={{b.Name}} style="height: 40%;">
                     <div class="caption">
                         <h5>{{b.Name}}</h5>
+                        <p>格式: {{ b.File | getFormat }}</p>
                         {% for a in b.Authors %}
                             <p><a>{{a.Name}}</a></p>
                         {% endfor %}
