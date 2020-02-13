@@ -76,6 +76,7 @@ func GetBooks(c *gin.Context) {
 		"books": books,
 		"prev":  prev,
 		"next":  next,
+		"count": count,
 	})
 }
 
