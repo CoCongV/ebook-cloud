@@ -30,10 +30,9 @@ func GetBooks(c *gin.Context) {
 		return
 	}
 	queryName, ok := c.GetQuery("name")
-	offsetCount := (page - 1) * 20
-	itemCount := 20
+	offsetCount := (page - 1) * config.Conf.PerPageItem
 
-	db := models.DB.Offset(offsetCount).Limit(itemCount).Preload("Authors")
+	db := models.DB.Offset(offsetCount).Limit(config.Conf.PerPageItem).Preload("Authors")
 
 	if ok == false {
 		models.DB.Model(&models.Book{}).Count(&count)
@@ -66,7 +65,7 @@ func GetBooks(c *gin.Context) {
 		prev = false
 	}
 
-	if itemCount*page > count {
+	if config.Conf.PerPageItem*page > count {
 		next = false
 	} else {
 		next = true

@@ -11,13 +11,13 @@ type Config struct {
 	Addr              string `toml:"addr"`
 	DBURL             string `toml:"dbURL"`
 	SecretKey         string `toml:"secret_key"`
-	ExpiresAt         int64  `toml:"expires_at"`
 	Mode              string `toml:"mode"`
 	VerifyUserURL     string `toml:"verify_user_url"`
 	UserServerTimeout int    `toml:"user_server_timeout"`
 	DestPath          string `toml:"dest_path"`
 	DefaultCoverImg   string `toml:"default_cover_img"`
 	SearchIndexFile   string `toml:"search_index_file"`
+	PerPageItem       int    `toml:"per_page_item"`
 }
 
 //Conf is struct Config point
