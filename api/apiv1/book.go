@@ -4,7 +4,6 @@ import (
 	"ebook-cloud/config"
 	"ebook-cloud/models"
 	"ebook-cloud/search"
-	"fmt"
 	"net/http"
 	"path"
 	"strconv"
@@ -112,7 +111,7 @@ func PostBooks(c *gin.Context) {
 		book.Authors = []*models.Author{&author}
 	}
 	models.DB.Create(&book)
-	search.Index.Index(fmt.Sprint(book.ID), search.BookIndex{book.Name})
+	search.Index.Index(strconv.FormatUint(uint64(book.ID), 10), search.BookIndex{book.Name})
 	c.JSON(http.StatusCreated, gin.H{
 		"id": book.ID,
 	})
@@ -138,7 +137,7 @@ func GetBook(c *gin.Context) {
 	}
 
 	ss := strings.Split(book.File, ".")
-	filename := book.Name + "." + ss[len(ss)-1]
+	filename := strings.Join([]string{book.Name, ss[len(ss)-1]}, ".")
 	c.FileAttachment(book.File, filename)
 }
 
