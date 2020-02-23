@@ -4,25 +4,33 @@ import (
 	"ebook-cloud/config"
 
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/mapping"
 )
 
 //BookIndex is bleve.BookIndex
 var (
-	BookIndex bleve.Index
-	err       error
+	BookIndex   bleve.Index
+	AuthorIndex bleve.Index
+	err         error
 )
 
-type BookIndexData struct {
+type IndexData struct {
 	Name string
 }
 
 //Setup is init bleve index
 func Setup() {
 	mapping := bleve.NewIndexMapping()
-	BookIndex, err = bleve.New(config.Conf.BookSearchIndexFile, mapping)
+	BookIndex = createIndex(config.Conf.BookSearchIndexFile, mapping)
+	AuthorIndex = createIndex(config.Conf.AuthorSearchIndexFile, mapping)
+}
+
+func createIndex(path string, mapping *mapping.IndexMappingImpl) bleve.Index {
+	index, err := bleve.New(path, mapping)
 	if err == bleve.ErrorIndexPathExists {
-		BookIndex, _ = bleve.Open(config.Conf.BookSearchIndexFile)
+		index, _ = bleve.Open(path)
 	} else if err != nil {
 		panic(err)
 	}
+	return index
 }

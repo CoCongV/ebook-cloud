@@ -83,7 +83,7 @@ func (suit *TestSuit) createData() {
 		assert.Error(suit.T(), err)
 	}
 	io.Copy(dst, src)
-	search.BookIndex.Index(fmt.Sprint(book.ID), search.BookIndexData{book.Name})
+	search.BookIndex.Index(fmt.Sprint(book.ID), search.IndexData{book.Name})
 
 	models.DB.FirstOrCreate(&author, models.Author{
 		Name:      "test",

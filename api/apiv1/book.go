@@ -113,7 +113,7 @@ func PostBooks(c *gin.Context) {
 		book.Authors = []*models.Author{&author}
 	}
 	models.DB.Create(&book)
-	search.BookIndex.Index(strconv.FormatUint(uint64(book.ID), 10), search.BookIndexData{book.Name})
+	search.BookIndex.Index(strconv.FormatUint(uint64(book.ID), 10), search.IndexData{book.Name})
 	c.JSON(http.StatusCreated, gin.H{
 		"id": book.ID,
 	})

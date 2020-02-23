@@ -58,7 +58,7 @@ func (suit *AuthorSuit) createData() {
 		assert.Error(suit.T(), err)
 	}
 	io.Copy(dst, src)
-	search.BookIndex.Index(fmt.Sprint(book.ID), search.BookIndexData{
+	search.BookIndex.Index(fmt.Sprint(book.ID), search.IndexData{
 		Name: book.Name,
 	})
 
