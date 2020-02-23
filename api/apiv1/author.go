@@ -2,6 +2,7 @@ package apiv1
 
 import (
 	"ebook-cloud/models"
+	"ebook-cloud/search"
 	"net/http"
 	"strconv"
 
@@ -58,6 +59,9 @@ func PostAuthors(c *gin.Context) {
 		UserID:    uid,
 	}
 	models.DB.Create(&author)
+	search.AuthorIndex.Index(strconv.FormatUint(uint64(author.ID), 10), search.IndexData{
+		Name: author.Name,
+	})
 	c.JSON(http.StatusCreated, gin.H{
 		"id": author.ID,
 	})

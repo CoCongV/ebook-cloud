@@ -14,6 +14,7 @@ var (
 	err         error
 )
 
+//IndexData is interface for search
 type IndexData struct {
 	Name string
 }
