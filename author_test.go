@@ -58,7 +58,9 @@ func (suit *AuthorSuit) createData() {
 		assert.Error(suit.T(), err)
 	}
 	io.Copy(dst, src)
-	search.Index.Index(fmt.Sprint(book.ID), search.BookIndex{book.Name})
+	search.BookIndex.Index(fmt.Sprint(book.ID), search.BookIndexData{
+		Name: book.Name,
+	})
 
 	models.DB.FirstOrCreate(&author, models.Author{
 		Name:      "test",
@@ -74,7 +76,7 @@ func (suit *AuthorSuit) delData() {
 	models.DB.Unscoped().Delete(&models.Book{})
 	models.DB.Unscoped().Delete(&models.Author{})
 	models.DB.Unscoped().Delete(&models.Country{})
-	os.RemoveAll(config.Conf.SearchIndexFile)
+	os.RemoveAll(config.Conf.BookSearchIndexFile)
 }
 
 func (suit *AuthorSuit) TearDownSuite() {

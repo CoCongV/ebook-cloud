@@ -8,6 +8,7 @@ import (
 	"ebook-cloud/models"
 	"ebook-cloud/search"
 	"ebook-cloud/server"
+	"ebook-cloud/view"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -40,6 +41,7 @@ type TestSuit struct {
 func (suit *TestSuit) SetupSuite() {
 	suit.server = server.CreateServ()
 	apiv1.SetRouter(suit.server)
+	view.SetRouter(suit.server)
 	suit.createData()
 	mock()
 }
@@ -81,7 +83,7 @@ func (suit *TestSuit) createData() {
 		assert.Error(suit.T(), err)
 	}
 	io.Copy(dst, src)
-	search.Index.Index(fmt.Sprint(book.ID), search.BookIndex{book.Name})
+	search.BookIndex.Index(fmt.Sprint(book.ID), search.BookIndexData{book.Name})
 
 	models.DB.FirstOrCreate(&author, models.Author{
 		Name:      "test",
@@ -104,7 +106,7 @@ func (suit *TestSuit) delData() {
 	models.DB.Unscoped().Delete(&models.Book{})
 	models.DB.Unscoped().Delete(&models.Author{})
 	models.DB.Unscoped().Delete(&models.Country{})
-	os.RemoveAll(config.Conf.SearchIndexFile)
+	os.RemoveAll(config.Conf.BookSearchIndexFile)
 }
 
 func (suit *TestSuit) TestGetBooks() {
@@ -241,6 +243,13 @@ func (suit *TestSuit) TestCountries() {
 	CustomUnmarshal(w, &countriesResp, suit.T())
 	assert.Equal(suit.T(), 1, len(countriesResp.Countries))
 }
+
+// func (suit *TestSuit) TestBookTemplate() {
+// 	w := httptest.NewRecorder()
+// 	req, _ := http.NewRequest("GET", "/", nil)
+// 	suit.server.ServeHTTP(w, req)
+// 	assert.Equal(suit.T(), 200, w.Code)
+// }
 
 func TestApiTestSuit(t *testing.T) {
 	suite.Run(t, new(TestSuit))

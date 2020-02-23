@@ -6,22 +6,22 @@ import (
 	"github.com/blevesearch/bleve"
 )
 
-//Index is bleve.Index
+//BookIndex is bleve.BookIndex
 var (
-	Index bleve.Index
-	err   error
+	BookIndex bleve.Index
+	err       error
 )
 
-type BookIndex struct {
+type BookIndexData struct {
 	Name string
 }
 
 //Setup is init bleve index
 func Setup() {
 	mapping := bleve.NewIndexMapping()
-	Index, err = bleve.New(config.Conf.SearchIndexFile, mapping)
+	BookIndex, err = bleve.New(config.Conf.BookSearchIndexFile, mapping)
 	if err == bleve.ErrorIndexPathExists {
-		Index, _ = bleve.Open(config.Conf.SearchIndexFile)
+		BookIndex, _ = bleve.Open(config.Conf.BookSearchIndexFile)
 	} else if err != nil {
 		panic(err)
 	}

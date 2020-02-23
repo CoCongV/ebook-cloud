@@ -8,16 +8,18 @@ import (
 
 //Config struct
 type Config struct {
-	Addr              string `toml:"addr"`
-	DBURL             string `toml:"dbURL"`
-	SecretKey         string `toml:"secret_key"`
-	Mode              string `toml:"mode"`
-	VerifyUserURL     string `toml:"verify_user_url"`
-	UserServerTimeout int    `toml:"user_server_timeout"`
-	DestPath          string `toml:"dest_path"`
-	DefaultCoverImg   string `toml:"default_cover_img"`
-	SearchIndexFile   string `toml:"search_index_file"`
-	PerPageItem       int    `toml:"per_page_item"`
+	Addr                  string `toml:"addr"`
+	DBURL                 string `toml:"dbURL"`
+	SecretKey             string `toml:"secret_key"`
+	Mode                  string `toml:"mode"`
+	VerifyUserURL         string `toml:"verify_user_url"`
+	UserServerTimeout     int    `toml:"user_server_timeout"`
+	DestPath              string `toml:"dest_path"`
+	DefaultCoverImg       string `toml:"default_cover_img"`
+	BookSearchIndexFile   string `toml:"book_search_index_file"`
+	AuthorSearchIndexFile string `toml:"author_search_index_file"`
+	TagSearchIndexFile    string `toml:"tag_search_index_file"`
+	PerPageItem           int    `toml:"per_page_item"`
 }
 
 //Conf is struct Config point

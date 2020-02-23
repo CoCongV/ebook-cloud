@@ -4,6 +4,7 @@ import (
 	"ebook-cloud/config"
 	"ebook-cloud/models"
 	"ebook-cloud/search"
+	"log"
 	"net/http"
 	"path"
 	"strconv"
@@ -39,7 +40,7 @@ func GetBooks(c *gin.Context) {
 	} else {
 		bleveQuery := bleve.NewMatchQuery(queryName)
 		searchReq := bleve.NewSearchRequest(bleveQuery)
-		searchResults, err := search.Index.Search(searchReq)
+		searchResults, err := search.BookIndex.Search(searchReq)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return
@@ -96,6 +97,7 @@ func PostBooks(c *gin.Context) {
 	filename := strings.Join([]string{bookForm.Name, bookForm.Format}, ".")
 	dstname := path.Join(config.Conf.DestPath, filename)
 	if err := c.SaveUploadedFile(file, dstname); err != nil {
+		log.Println(filename)
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -111,7 +113,7 @@ func PostBooks(c *gin.Context) {
 		book.Authors = []*models.Author{&author}
 	}
 	models.DB.Create(&book)
-	search.Index.Index(strconv.FormatUint(uint64(book.ID), 10), search.BookIndex{book.Name})
+	search.BookIndex.Index(strconv.FormatUint(uint64(book.ID), 10), search.BookIndexData{book.Name})
 	c.JSON(http.StatusCreated, gin.H{
 		"id": book.ID,
 	})

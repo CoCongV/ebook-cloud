@@ -38,7 +38,7 @@ func BookView(c *gin.Context) {
 	} else {
 		bleveQuery := bleve.NewMatchQuery(queryName)
 		searchReq := bleve.NewSearchRequest(bleveQuery)
-		searchResults, err := search.Index.Search(searchReq)
+		searchResults, err := search.BookIndex.Search(searchReq)
 		if err != nil {
 			c.AbortWithError(http.StatusInternalServerError, err)
 			return

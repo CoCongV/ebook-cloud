@@ -1,6 +1,7 @@
 package render
 
 import (
+	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -43,6 +44,8 @@ func (p PongoProduction) Instance(name string, data interface{}) render.Render {
 		p.Templates[name] = tmpl
 		t = tmpl
 	}
+	log.Println("test")
+	log.Println(p.Templates)
 
 	return Pongo{
 		Template: t,
