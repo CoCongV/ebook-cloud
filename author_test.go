@@ -66,6 +66,9 @@ func (suit *AuthorSuit) createData() {
 		Name:      "test",
 		CountryID: china.ID,
 	})
+	search.AuthorIndex.Index(fmt.Sprint(author.ID), search.IndexData{
+		Name: author.Name,
+	})
 	models.DB.Model(&author).Association("Books").Append(book)
 	suit.country = &china
 	suit.author = &author
@@ -145,6 +148,14 @@ func (suit *AuthorSuit) TestAuthors400() {
 	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 400, w.Code)
+}
+
+func (suit *AuthorSuit) TestSearchAuthors() {
+	w := httptest.NewRecorder()
+	url := CreateQuery("/api/v1/authors", map[string]string{"page": "1", "name": "test"})
+	req, _ := http.NewRequest("GET", url, nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
 }
 
 func TestAuthorSuit(t *testing.T) {
