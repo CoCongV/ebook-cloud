@@ -58,11 +58,16 @@ func (suit *AuthorSuit) createData() {
 		assert.Error(suit.T(), err)
 	}
 	io.Copy(dst, src)
-	search.Index.Index(fmt.Sprint(book.ID), search.BookIndex{book.Name})
+	search.BookIndex.Index(fmt.Sprint(book.ID), search.IndexData{
+		Name: book.Name,
+	})
 
 	models.DB.FirstOrCreate(&author, models.Author{
 		Name:      "test",
 		CountryID: china.ID,
+	})
+	search.AuthorIndex.Index(fmt.Sprint(author.ID), search.IndexData{
+		Name: author.Name,
 	})
 	models.DB.Model(&author).Association("Books").Append(book)
 	suit.country = &china
@@ -74,7 +79,7 @@ func (suit *AuthorSuit) delData() {
 	models.DB.Unscoped().Delete(&models.Book{})
 	models.DB.Unscoped().Delete(&models.Author{})
 	models.DB.Unscoped().Delete(&models.Country{})
-	os.RemoveAll(config.Conf.SearchIndexFile)
+	os.RemoveAll(config.Conf.BookSearchIndexFile)
 }
 
 func (suit *AuthorSuit) TearDownSuite() {
@@ -143,6 +148,14 @@ func (suit *AuthorSuit) TestAuthors400() {
 	req, _ = http.NewRequest("POST", "/api/v1/authors", bytes.NewBuffer(paramsByte))
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 400, w.Code)
+}
+
+func (suit *AuthorSuit) TestSearchAuthors() {
+	w := httptest.NewRecorder()
+	url := CreateQuery("/api/v1/authors", map[string]string{"page": "1", "name": "test"})
+	req, _ := http.NewRequest("GET", url, nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
 }
 
 func TestAuthorSuit(t *testing.T) {
