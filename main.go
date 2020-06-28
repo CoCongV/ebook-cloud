@@ -67,7 +67,12 @@ func runserver(c *cli.Context) error {
 func migrate(c *cli.Context) error {
 	defer models.DB.Close()
 
-	models.DB.AutoMigrate(&models.Book{}, &models.Author{}, &models.Country{}, &models.Tag{})
+	models.DB.AutoMigrate(&models.Book{}, &models.Author{}, &models.Country{}, &models.Tag{}, &models.User{}, &models.Role{})
 
+	return nil
+}
+
+func initTable(c *cli.Context) error {
+	models.NewRoles(0)
 	return nil
 }
