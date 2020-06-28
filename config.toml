@@ -1,4 +1,4 @@
-dbURL = "host=127.0.0.1 port=5432 user=lvcong dbname=ebook password=password sslmode=disable"
+dbURL = "host=127.0.0.1 port=5432 user=ebook dbname=ebook password=password sslmode=disable"
 addr = ":8002"
 secret_key = "f3efef74-c99f-4224-9491-2f347d5318b5"
 mode = "debug"
