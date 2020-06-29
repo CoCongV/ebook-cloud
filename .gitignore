@@ -4,3 +4,4 @@ tmp/
 test_file/
 dist/
 ebook-cloud.tar
+coverage.html
