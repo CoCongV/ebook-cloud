@@ -134,7 +134,7 @@ func (suit *TestSuit) TestGetBooks() {
 
 func (suit *TestSuit) TestPostBook() {
 	w := httptest.NewRecorder()
-	file, err := os.Open("./test_file/test.pdf")
+	file, err := os.Open("./test_file/test.mobi")
 	if err != nil {
 		assert.Error(suit.T(), err)
 	}
@@ -147,9 +147,9 @@ func (suit *TestSuit) TestPostBook() {
 		assert.Error(suit.T(), err)
 	}
 	_, err = io.Copy(part, file)
-	_ = writer.WriteField("name", "book")
-	_ = writer.WriteField("format", "mobi")
-	_ = writer.WriteField("author", fmt.Sprint(suit.author.ID))
+	writer.WriteField("name", "book")
+	writer.WriteField("format", "mobi")
+	writer.WriteField("author", fmt.Sprint(suit.author.ID))
 	if err = writer.Close(); err != nil {
 		assert.Error(suit.T(), err)
 	}
@@ -157,6 +157,31 @@ func (suit *TestSuit) TestPostBook() {
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	suit.server.ServeHTTP(w, req)
 	assert.Equal(suit.T(), 201, w.Code)
+}
+
+func (suit *TestSuit) TestPutBook() {
+	w := httptest.NewRecorder()
+	file, err := os.Open("./test_file/test1.mobi")
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file", "test1.mobi")
+	if err != nil {
+		assert.Error(suit.T(), err)
+	}
+	_, err = io.Copy(part, file)
+	if err = writer.Close(); err != nil {
+		assert.Error(suit.T(), err)
+	}
+	url := "/api/v1/books/" + fmt.Sprint(suit.book.ID)
+	req, _ := http.NewRequest("PUT", url, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
 }
 
 func (suit *TestSuit) TestGetBookByID() {
