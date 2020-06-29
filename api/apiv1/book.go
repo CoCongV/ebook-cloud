@@ -6,6 +6,7 @@ import (
 	"ebook-cloud/search"
 	"log"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -177,8 +178,17 @@ func PatchBook(c *gin.Context) {
 		models.DB.Where("id in (?)", *(bookJSON.Tags)).Find(&tags)
 		models.DB.Model(&book).Association("Tags").Append(tags)
 	}
-
+	oldBookFile := book.File
+	ss := strings.Split(book.File, ".")
+	format := ss[len(ss)-1]
 	models.DB.First(&book, bookuri.ID).Update("name", bookJSON.Name)
+	filename := strings.Join([]string{book.Name, format}, ".")
+	newDstName := path.Join(config.Conf.DestPath, filename)
+	if err := os.Rename(oldBookFile, newDstName); err != nil {
+		c.AbortWithError(http.StatusInternalServerError, err)
+		return
+	}
+
 	c.AbortWithStatusJSON(
 		http.StatusOK, gin.H{
 			"book": book,
