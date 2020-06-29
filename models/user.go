@@ -42,11 +42,11 @@ func NewRoles(uid uint) error {
 	})
 	DB.Create(&Role{
 		Name:        Moderator,
-		Permmission: MODERATE,
+		Permmission: MODERATE + COMMON,
 	})
 	DB.Create(&Role{
 		Name:        Administrator,
-		Permmission: ADMIN,
+		Permmission: ADMIN + MODERATE + COMMON,
 	}).Association("Users").Append(&User{
 		UID: uid,
 	})
