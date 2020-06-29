@@ -9,11 +9,13 @@ import (
 )
 
 //AuthHandler is auth decorator
-func AuthHandler(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-	id, err := client.UserClient.VerifyUser(token)
-	if err != nil {
-		c.AbortWithError(http.StatusUnauthorized, err)
+func AuthHandler(permisson string) func(c *gin.Context) {
+	return func(c *gin.Context) {
+		token := c.GetHeader("Authorization")
+		id, err := client.UserClient.VerifyUser(token)
+		if err != nil {
+			c.AbortWithError(http.StatusUnauthorized, err)
+		}
+		c.Set("uid", id)
 	}
-	c.Set("uid", id)
 }
