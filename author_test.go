@@ -70,6 +70,7 @@ func (suit *AuthorSuit) createData() {
 		Name: author.Name,
 	})
 	models.DB.Model(&author).Association("Books").Append(book)
+	models.NewRoles(1)
 	suit.country = &china
 	suit.author = &author
 	suit.book = &book
@@ -79,6 +80,8 @@ func (suit *AuthorSuit) delData() {
 	models.DB.Unscoped().Delete(&models.Book{})
 	models.DB.Unscoped().Delete(&models.Author{})
 	models.DB.Unscoped().Delete(&models.Country{})
+	models.DB.Unscoped().Delete(&models.User{})
+	models.DB.Unscoped().Delete(&models.Role{})
 	os.RemoveAll(config.Conf.BookSearchIndexFile)
 }
 

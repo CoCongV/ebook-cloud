@@ -52,8 +52,9 @@ func (suit *TestSuit) TearDownSuite() {
 }
 
 func mock() {
-	fixture := `{"id": 1}`
-	responder := httpmock.NewStringResponder(200, fixture)
+	responder, _ := httpmock.NewJsonResponder(200, map[string]uint{
+		"id": 1,
+	})
 	httpmock.ActivateNonDefault(client.UserClient.Client.GetClient())
 	httpmock.RegisterResponder("GET", client.UserClient.VerifyURL, responder)
 }
@@ -66,6 +67,7 @@ func (suit *TestSuit) createData() {
 		book    models.Book
 		tag     models.Tag
 	)
+	models.NewRoles(1)
 	models.DB.FirstOrCreate(&china, models.Country{
 		Name: "China",
 	})
@@ -106,6 +108,8 @@ func (suit *TestSuit) delData() {
 	models.DB.Unscoped().Delete(&models.Book{})
 	models.DB.Unscoped().Delete(&models.Author{})
 	models.DB.Unscoped().Delete(&models.Country{})
+	models.DB.Unscoped().Delete(&models.User{})
+	models.DB.Unscoped().Delete(&models.Role{})
 	os.RemoveAll(config.Conf.BookSearchIndexFile)
 }
 

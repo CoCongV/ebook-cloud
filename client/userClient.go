@@ -19,7 +19,7 @@ type userClient struct {
 }
 
 type VerifyUserResp struct {
-	ID uint
+	ID uint `json:"id"`
 }
 
 //UserClient is UserClientStruct point

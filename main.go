@@ -45,6 +45,11 @@ func main() {
 				Usage:  "migrate models",
 				Action: migrate,
 			},
+			{
+				Name:   "initUser",
+				Usage:  "create roles and administrator",
+				Action: initUser,
+			},
 		},
 	}
 	err := app.Run(os.Args)
@@ -72,7 +77,7 @@ func migrate(c *cli.Context) error {
 	return nil
 }
 
-func initTable(c *cli.Context) error {
-	models.NewRoles(0)
+func initUser(c *cli.Context) error {
+	models.NewRoles(1)
 	return nil
 }
