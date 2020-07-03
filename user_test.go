@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -25,6 +27,7 @@ func (suit *UserSuit) SetupSuite() {
 	apiv1.SetRouter(suit.server)
 	view.SetRouter(suit.server)
 	suit.CreateRoles()
+	mock()
 }
 
 func (suit *UserSuit) TearDownSuite() {
@@ -64,6 +67,13 @@ func (suit *UserSuit) TestCRUDUser() {
 	assert.Equal(suit.T(), false, models.DB.NewRecord(user))
 	models.DB.Model(&user).Related(&role)
 	assert.Equal(suit.T(), models.CommonUser, role.Name)
+}
+
+func (suit *UserSuit) TestLogin() {
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/v1/login", nil)
+	suit.server.ServeHTTP(w, req)
+	assert.Equal(suit.T(), 200, w.Code)
 }
 
 func TestUserSuit(t *testing.T) {
