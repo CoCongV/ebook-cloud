@@ -102,8 +102,8 @@ func PostBooks(c *gin.Context) {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
-	uidInterfae, _ := c.Get("uid")
-	uid := uidInterfae.(uint)
+	uidInterface, _ := c.Get("uid")
+	uid := uidInterface.(uint)
 	book := models.Book{
 		Name:   bookForm.Name,
 		File:   dstname,
