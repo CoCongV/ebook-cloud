@@ -30,6 +30,11 @@ type Role struct {
 	Users       []User
 }
 
+//HasPermission for check user permission
+func (r *Role) HasPermission(perm uint) bool {
+	return r.Permmission&perm == perm
+}
+
 //NewRoles for create role and administrator
 func NewRoles(uid uint) error {
 	DB.Create(&Role{
@@ -58,4 +63,13 @@ type User struct {
 	gorm.Model
 	UID    uint `gorm:"unique_index"`
 	RoleID uint
+}
+
+//AfterSave is hook
+func (u *User) AfterSave(scope *gorm.Scope) error {
+	if u.RoleID == 0 {
+		var role Role
+		scope.DB().Where("Name = ?", CommonUser).First(&role).Association("Users").Append(u)
+	}
+	return nil
 }
